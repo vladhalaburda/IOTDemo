@@ -24,7 +24,7 @@ public class ZagbeeController {
     @PostMapping("/add_device")
     public ResponseEntity<String> addDevice(@RequestBody ZigbeeDevice device) {
         zigbeeMqttEmulator.addDevice(device);
-        return ResponseEntity.ok("Sensor added: " + device.getName());
+        return ResponseEntity.ok("Sensor added: " + device.getName() + ": "+ device.getLocation());
     }
 
     @GetMapping("/list_device")

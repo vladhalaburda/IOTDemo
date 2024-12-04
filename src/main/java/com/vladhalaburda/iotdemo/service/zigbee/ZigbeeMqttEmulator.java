@@ -56,6 +56,7 @@ public class ZigbeeMqttEmulator {
 
     public Map<String, ZigbeeDevice>  deviceList() {
         return devices;
+
     }
 
     public void startSimulation() {
@@ -73,23 +74,6 @@ public class ZigbeeMqttEmulator {
             }
         }).start();
     }
-
-    // private void publishData(ZigbeeDevice device) {
-    //     Map<String, Object> data = new HashMap<>(device.getParameters());
-    //     data.put("state", device.isState());
-    //     if (device.getType().equals("temperature")) {
-    //         data.put("temperature", 20 + random.nextDouble() * 10);
-    //     } else if (device.getType().equals("humidity")) {
-    //         data.put("humidity", 30 + random.nextDouble() * 20);
-    //     }
-    //     try {
-    //         mqttClient.publish(BASE_TOPIC + device.getName(), new MqttMessage(data.toString().getBytes()));
-    //         System.out.println("Published data for " + BASE_TOPIC + device.getName() + ": " + data);
-    //     } catch (MqttException e) {
-    //         e.printStackTrace();
-    //     }
-    // }
-
 
     private void publishData(ZigbeeDevice device) {
         Map<String, Object> data = new HashMap<>(device.getParameters());

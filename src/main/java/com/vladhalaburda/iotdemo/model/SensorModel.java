@@ -14,6 +14,7 @@ public class SensorModel {
     private String name;
     private String type; // temperature 
     private String status;
+    private String location;
 
     private String connectionType; // wifi, mqtt, and more
 
@@ -65,5 +66,13 @@ public class SensorModel {
 
     public void setConnectionParams(Map<String, String> connectionParams) {
         this.connectionParams = connectionParams;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 }

@@ -8,6 +8,7 @@ public class ZigbeeDevice {
     private String type;
     private boolean state;
     private Map<String, Object> parameters;
+    private String location;
 
     // Getters and Setters
     public String getId() { return id; }
@@ -20,4 +21,12 @@ public class ZigbeeDevice {
     public void setState(boolean state) { this.state = state; }
     public Map<String, Object> getParameters() { return parameters; }
     public void setParameters(Map<String, Object> parameters) { this.parameters = parameters; }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
 }
