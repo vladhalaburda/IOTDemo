@@ -2,7 +2,12 @@ package com.vladhalaburda.iotdemo.model;
 
 import java.util.Map;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.annotation.Id;
+
+@Document(collection="sensors")
 public class ZigbeeDevice {
+    @Id
     private String id;
     private String name;
     private String type;

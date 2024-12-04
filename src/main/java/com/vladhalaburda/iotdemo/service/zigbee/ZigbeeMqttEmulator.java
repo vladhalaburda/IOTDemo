@@ -1,6 +1,7 @@
 package com.vladhalaburda.iotdemo.service.zigbee;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -9,10 +10,12 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vladhalaburda.iotdemo.model.ZigbeeDevice;
+import com.vladhalaburda.iotdemo.repository.ZigbeeRepository;
 // 172.27.132.179
 @Service
 public class ZigbeeMqttEmulator {
@@ -23,6 +26,10 @@ public class ZigbeeMqttEmulator {
     private MqttClient mqttClient;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Autowired
+    private ZigbeeRepository deviceRepository;
+
 
     public ZigbeeMqttEmulator() throws MqttException {
         mqttClient = new MqttClient(BROKER, MqttClient.generateClientId());
@@ -47,29 +54,46 @@ public class ZigbeeMqttEmulator {
     }
 
     public void addDevice(ZigbeeDevice device) {
-        devices.put(device.getId(), device);
+        deviceRepository.save(device);
+        // devices.put(device.getId(), device);
+
+    }
+
+    public ZigbeeDevice enableDevice(String deviceId) {
+        // Ищем устройство в базе
+        ZigbeeDevice device = deviceRepository.findById(deviceId)
+                .orElseThrow(() -> new IllegalArgumentException("Device not found with ID: " + deviceId));
+
+        // Устанавливаем состояние в true
+        device.setState(true);
+        deviceRepository.save(device);
+
+        return device;
     }
 
     public void removeDevice(String deviceId) {
         devices.remove(deviceId);
     }
 
-    public Map<String, ZigbeeDevice>  deviceList() {
-        return devices;
+    public List<ZigbeeDevice> deviceList() {
+        return deviceRepository.findAll();
 
     }
 
     public void startSimulation() {
+        // Периодически обновляем данные для всех устройств
         new Thread(() -> {
             while (true) {
-                for (ZigbeeDevice device : devices.values()) {
-                    publishData(device);
-                }
                 try {
-                    Thread.sleep(5000);
+                    List<ZigbeeDevice> devices = deviceRepository.findAll();
+                    for (ZigbeeDevice device : devices) {
+                        if (device.isState()) { // Только включенные устройства
+                            publishData(device);
+                        }
+                    }
+                    Thread.sleep(5000); // Интервал публикации данных
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
+                    e.printStackTrace();
                 }
             }
         }).start();
@@ -78,14 +102,14 @@ public class ZigbeeMqttEmulator {
     private void publishData(ZigbeeDevice device) {
         Map<String, Object> data = new HashMap<>(device.getParameters());
         data.put("state", device.isState());
-    
+            
         // Генерация случайных значений для температуры и влажности
         if (device.getType().equals("temperature")) {
             data.put("temperature", 20 + random.nextDouble() * 10);
         } else if (device.getType().equals("humidity")) {
             data.put("humidity", 30 + random.nextDouble() * 20);
         }
-        data.put("topic", BASE_TOPIC + device.getName());
+        data.put("topic", BASE_TOPIC + device.getId());
     
         try {
             // Преобразование данных в JSON-строку
