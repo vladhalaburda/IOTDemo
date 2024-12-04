@@ -32,5 +32,11 @@ public class ZagbeeController {
         return zigbeeMqttEmulator.deviceList();
     }
 
+    @GetMapping("/start_sim")
+    public ResponseEntity<String> startSimulation() {
+        zigbeeMqttEmulator.startSimulation();
+        return ResponseEntity.ok("Simulation for all devices was started");
+    }
+
 
 }

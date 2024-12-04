@@ -9,9 +9,11 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.springframework.stereotype.Service;
 
 import com.vladhalaburda.iotdemo.model.ZigbeeDevice;
 
+@Service
 public class ZigbeeMqttEmulator {
     private static final String BROKER = "tcp://localhost:1883";
     private static final String BASE_TOPIC = "zigbee2mqtt/";
