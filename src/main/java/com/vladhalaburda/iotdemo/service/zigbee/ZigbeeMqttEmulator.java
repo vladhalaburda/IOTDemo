@@ -12,7 +12,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.springframework.stereotype.Service;
 
 import com.vladhalaburda.iotdemo.model.ZigbeeDevice;
-
+// 172.27.132.179
 @Service
 public class ZigbeeMqttEmulator {
     private static final String BROKER = "tcp://localhost:1883";
@@ -81,7 +81,7 @@ public class ZigbeeMqttEmulator {
         }
         try {
             mqttClient.publish(BASE_TOPIC + device.getName(), new MqttMessage(data.toString().getBytes()));
-            System.out.println("Published data for " + device.getName() + ": " + data);
+            System.out.println("Published data for " + BASE_TOPIC + device.getName() + ": " + data);
         } catch (MqttException e) {
             e.printStackTrace();
         }
