@@ -49,6 +49,10 @@ public class ZigbeeMqttEmulator {
         devices.remove(deviceId);
     }
 
+    public Map<String, ZigbeeDevice>  deviceList() {
+        return devices;
+    }
+
     public void startSimulation() {
         new Thread(() -> {
             while (true) {
