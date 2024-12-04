@@ -1,6 +1,7 @@
 package com.vladhalaburda.iotdemo.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,18 +14,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vladhalaburda.iotdemo.model.ZigbeeDevice;
 import com.vladhalaburda.iotdemo.service.zigbee.ZigbeeMqttEmulator;
-import com.vladhalaburda.iotdemo.service.zigbee.ZigbeeService;
 
 @RestController
 @RequestMapping("/api/zagbee")
 public class ZagbeeController {
     
     private final ZigbeeMqttEmulator zigbeeMqttEmulator;
-    private final ZigbeeService zigbeeService;
 
-    public ZagbeeController(ZigbeeMqttEmulator zigbeeMqttEmulator, ZigbeeService zigbeeService) {
+    public ZagbeeController(ZigbeeMqttEmulator zigbeeMqttEmulator) {
         this.zigbeeMqttEmulator = zigbeeMqttEmulator;
-        this.zigbeeService = zigbeeService;
     }
 
     @PostMapping("/add_device")
@@ -52,6 +50,16 @@ public class ZagbeeController {
             return ResponseEntity.ok("Device " + updatedDevice.getName() + " enabled successfully.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/simulate")
+    public ResponseEntity<String> startSimulation(@RequestBody Map<String, Map<String, Double>> ranges) {
+        try {
+            zigbeeMqttEmulator.startSimulationWithRanges(ranges);
+            return ResponseEntity.ok("Simulation started with provided ranges.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to start simulation: " + e.getMessage());
         }
     }
 

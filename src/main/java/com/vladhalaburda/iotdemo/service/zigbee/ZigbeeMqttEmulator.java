@@ -102,7 +102,7 @@ public class ZigbeeMqttEmulator {
     private void publishData(ZigbeeDevice device) {
         Map<String, Object> data = new HashMap<>(device.getParameters());
         data.put("state", device.isState());
-            
+
         // Генерация случайных значений для температуры и влажности
         if (device.getType().equals("temperature")) {
             data.put("temperature", 20 + random.nextDouble() * 10);
@@ -116,12 +116,53 @@ public class ZigbeeMqttEmulator {
             String jsonData = objectMapper.writeValueAsString(data);
     
             // Публикация сообщения в формате JSON
-            mqttClient.publish(BASE_TOPIC + device.getName(), new MqttMessage(jsonData.getBytes()));
-            System.out.println("Published data for " + BASE_TOPIC + device.getName() + ": " + jsonData);
+            mqttClient.publish(BASE_TOPIC + device.getId(), new MqttMessage(jsonData.getBytes()));
+            System.out.println("Published data for " + BASE_TOPIC + device.getId() + ": " + jsonData);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    public void startSimulationWithRanges(Map<String, Map<String, Double>> ranges) {
+        List<ZigbeeDevice> devices = deviceRepository.findAll();
+
+        for (ZigbeeDevice device : devices) {
+            if (device.isState()) {
+                double min = ranges.getOrDefault(device.getName(), Map.of("min", 0.0, "max", 100.0)).get("min");
+                double max = ranges.getOrDefault(device.getName(), Map.of("min", 0.0, "max", 100.0)).get("max");
+
+                simulateDevice(device, min, max);
+            }
+        }
+    }
+
+
+    private void simulateDevice(ZigbeeDevice device, double min, double max) {
+        new Thread(() -> {
+            while (device.isState()) {
+                try {
+                    Map<String, Object> data = new HashMap<>(device.getParameters());
+                    data.put("state", device.isState());
+
+                    if ("temperature".equals(device.getType())) {
+                        data.put("temperature", min + random.nextDouble() * (max - min));
+                    } else if ("humidity".equals(device.getType())) {
+                        data.put("humidity", min + random.nextDouble() * (max - min));
+                    }
+                    data.put("topic", BASE_TOPIC + device.getId());
+
+                    String jsonData = objectMapper.writeValueAsString(data);
+
+                    System.out.println("Published data for " + BASE_TOPIC + device.getId() + ": " + jsonData);
+                    mqttClient.publish("zigbee2mqtt/" + device.getId(), new MqttMessage(jsonData.getBytes()));
+                    Thread.sleep(5000); // Публикация каждые 5 секунд
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
 
     private void handleCommand(String topic, String payload) {
         String deviceId = topic.split("/")[1];
