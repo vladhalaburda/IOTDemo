@@ -11,6 +11,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vladhalaburda.iotdemo.model.ZigbeeDevice;
 // 172.27.132.179
 @Service
@@ -20,6 +21,8 @@ public class ZigbeeMqttEmulator {
     private final Map<String, ZigbeeDevice> devices = new HashMap<>();
     private final Random random = new Random();
     private MqttClient mqttClient;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public ZigbeeMqttEmulator() throws MqttException {
         mqttClient = new MqttClient(BROKER, MqttClient.generateClientId());
@@ -71,18 +74,43 @@ public class ZigbeeMqttEmulator {
         }).start();
     }
 
+    // private void publishData(ZigbeeDevice device) {
+    //     Map<String, Object> data = new HashMap<>(device.getParameters());
+    //     data.put("state", device.isState());
+    //     if (device.getType().equals("temperature")) {
+    //         data.put("temperature", 20 + random.nextDouble() * 10);
+    //     } else if (device.getType().equals("humidity")) {
+    //         data.put("humidity", 30 + random.nextDouble() * 20);
+    //     }
+    //     try {
+    //         mqttClient.publish(BASE_TOPIC + device.getName(), new MqttMessage(data.toString().getBytes()));
+    //         System.out.println("Published data for " + BASE_TOPIC + device.getName() + ": " + data);
+    //     } catch (MqttException e) {
+    //         e.printStackTrace();
+    //     }
+    // }
+
+
     private void publishData(ZigbeeDevice device) {
         Map<String, Object> data = new HashMap<>(device.getParameters());
         data.put("state", device.isState());
+    
+        // Генерация случайных значений для температуры и влажности
         if (device.getType().equals("temperature")) {
             data.put("temperature", 20 + random.nextDouble() * 10);
         } else if (device.getType().equals("humidity")) {
             data.put("humidity", 30 + random.nextDouble() * 20);
         }
+        data.put("topic", BASE_TOPIC + device.getName());
+    
         try {
-            mqttClient.publish(BASE_TOPIC + device.getName(), new MqttMessage(data.toString().getBytes()));
-            System.out.println("Published data for " + BASE_TOPIC + device.getName() + ": " + data);
-        } catch (MqttException e) {
+            // Преобразование данных в JSON-строку
+            String jsonData = objectMapper.writeValueAsString(data);
+    
+            // Публикация сообщения в формате JSON
+            mqttClient.publish(BASE_TOPIC + device.getName(), new MqttMessage(jsonData.getBytes()));
+            System.out.println("Published data for " + BASE_TOPIC + device.getName() + ": " + jsonData);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
